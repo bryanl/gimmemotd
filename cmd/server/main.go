@@ -3,27 +3,38 @@ package main
 import (
 	"context"
 	"encoding/json"
-	"flag"
+	"fmt"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/kelseyhightower/envconfig"
 	"github.com/sirupsen/logrus"
 )
 
-func main() {
-	addr := flag.String("addr", ":8181", "listen address")
-	flag.Parse()
+type spec struct {
+	Port int `default:"8181"`
+}
 
+func main() {
 	logger := logrus.New()
+
+	var s spec
+	err := envconfig.Process("gimmemotd", &s)
+	if err != nil {
+		logger.WithError(err).Fatal("unable to process environment")
+	}
+
 	logger.Info("server is starting")
 
 	router := http.NewServeMux()
 	router.Handle("/", index(logger))
 
+	addr := fmt.Sprintf(":%d", s.Port)
+
 	server := &http.Server{
-		Addr:         *addr,
+		Addr:         addr,
 		Handler:      router,
 		ReadTimeout:  5 * time.Second,
 		WriteTimeout: 5 * time.Second,
@@ -46,10 +57,10 @@ func main() {
 		}
 	}()
 
-	logger.WithField("addr", *addr).Info("server is ready")
+	logger.WithField("addr", addr).Info("server is ready")
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		logger.WithError(err).
-			WithField("addr", *addr).
+			WithField("addr", addr).
 			Fatal("server could not listen on address")
 	}
 
