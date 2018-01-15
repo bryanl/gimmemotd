@@ -14,7 +14,7 @@ import (
 )
 
 type spec struct {
-	Port int `default:"8181"`
+	Addr int `default:"8181"`
 }
 
 func main() {
@@ -31,7 +31,7 @@ func main() {
 	router := http.NewServeMux()
 	router.Handle("/", index(logger))
 
-	addr := fmt.Sprintf(":%d", s.Port)
+	addr := fmt.Sprintf(":%d", s.Addr)
 
 	server := &http.Server{
 		Addr:         addr,
