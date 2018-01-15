@@ -8,6 +8,12 @@
   version = "v2.2.0"
 
 [[projects]]
+  name = "github.com/kelseyhightower/envconfig"
+  packages = ["."]
+  revision = "f611eb38b3875cc3bd991ca91c51d06446afa14c"
+  version = "v1.3.0"
+
+[[projects]]
   name = "github.com/maruel/panicparse"
   packages = ["stack"]
   revision = "766956aceb8ff49664065ae50bef0ae8a0a83ec4"
@@ -58,6 +64,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "d2447dd76970c748e662e72a12cf55eeabfc9d2db1934b1dd7e13093b6349d4b"
+  inputs-digest = "266bf59e75653df3642dd3daebfe097aa4b4346fc535dc271264ebce2ccbf103"
   solver-name = "gps-cdcl"
   solver-version = 1
