@@ -13,8 +13,16 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+var version string
+
 type spec struct {
 	Addr int `default:"8181"`
+}
+
+func init() {
+	if version == "" {
+		version = "dev"
+	}
 }
 
 func main() {
@@ -70,6 +78,7 @@ func main() {
 type response struct {
 	Hostname string `json:"hostname,omitempty"`
 	Message  string `json:"message,omitempty"`
+	Version  string `json:"version,omitempty"`
 }
 
 func index(logger logrus.FieldLogger) http.Handler {
@@ -83,6 +92,7 @@ func index(logger logrus.FieldLogger) http.Handler {
 		resp := response{
 			Hostname: "host",
 			Message:  "v2",
+			Version:  version,
 		}
 
 		w.Header().Set("Content-Type", "application/json")
