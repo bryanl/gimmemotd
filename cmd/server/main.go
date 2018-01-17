@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
 	"time"
 
+	"github.com/bryanl/gimmemotd"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +18,8 @@ import (
 var version string
 
 type spec struct {
-	Addr int `default:"8181"`
+	Addr         int    `default:"8181"`
+	FortunesPath string `envconfig:"fortunes_path"`
 }
 
 func init() {
@@ -36,8 +39,27 @@ func main() {
 
 	logger.Info("server is starting")
 
+	files, err := gimmemotd.LoadFortunes(s.FortunesPath)
+	if err != nil {
+		logger.WithError(err).Fatal("unable to load fortunes")
+	}
+
+	var rs []io.Reader
+	for _, f := range files {
+		rs = append(rs, f)
+	}
+
+	fortunes, err := gimmemotd.MakeFortunes(rs...)
+	if err != nil {
+		logger.WithError(err).Fatal("unable to create fortune maker")
+	}
+
+	fs := fortuneServer{
+		fortunes: fortunes,
+	}
+
 	router := http.NewServeMux()
-	router.Handle("/", index(logger))
+	router.Handle("/", fs.index(logger))
 
 	addr := fmt.Sprintf(":%d", s.Addr)
 
@@ -81,7 +103,11 @@ type response struct {
 	Version  string `json:"version,omitempty"`
 }
 
-func index(logger logrus.FieldLogger) http.Handler {
+type fortuneServer struct {
+	fortunes *gimmemotd.Fortunes
+}
+
+func (s *fortuneServer) index(logger logrus.FieldLogger) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		now := time.Now()
 
@@ -91,7 +117,7 @@ func index(logger logrus.FieldLogger) http.Handler {
 
 		resp := response{
 			Hostname: "host",
-			Message:  "v2",
+			Message:  s.fortunes.Sample(),
 			Version:  version,
 		}
 
